@@ -9,7 +9,8 @@ import utils
 
     
 #https://en.bitcoin.it/wiki/Protocol_specification#version
-magic = 0xd9b4bef9
+magic = 0xd9b4bef9  #btc
+magic = 0xe3e1f3e8 #bsv mainnet
 
 def makeMessage(magic, command, payload):
     checksum = hashlib.sha256(hashlib.sha256(payload).digest()).digest()[0:4]
@@ -63,6 +64,40 @@ def processChunk(header, payload):
 def dump(s):
     print ':'.join(x.encode('hex') for x in s)
 
+def getVersionMsg_mik(myip,serverip):
+    # version(4), services(8), timestamp(8), addr_me(26), addr_you(26), nonce(8)
+    # sub_version_num (var_str), start_height(4)
+    version = 60002
+    services = 1
+    timestamp = int(time.time())
+    addr_me = utils.netaddr(socket.inet_aton(serverip), 8333)
+    addr_you = utils.netaddr(socket.inet_aton(myip), 8333)
+    nonce = random.getrandbits(64)
+    sub_version_num = utils.varstr('/Satoshi:0.7.2/')
+    start_height = 212672
+
+    payload = struct.pack('<LQQ26s26sQs15sL', version, services, timestamp, addr_me,
+        addr_you, nonce, sub_version_num,'/Satoshi:0.7.2/', start_height)
+    
+    hd = ":".join("{:02x}".format(ord(c)) for c in payload)
+    print ( hd )
+    print  ( "BYTES IN MESSAGE:", (len(hd)+1)/3/2)
+    print payload
+    print  ( "BYTES IN PAYLOAD:", len ( payload )  )
+
+    fullmessage = makeMessage(magic, 'version', payload)
+
+    
+    print("-----"*10 )
+    payload = fullmessage
+    hd = ":".join("{:02x}".format(ord(c)) for c in payload)
+    print ( hd )
+    print  ( "BYTES IN MESSAGE:", (len(hd)+1)/3/2)
+    print payload
+    print  ( "BYTES IN PAYLOAD:", len ( payload )  )
+
+
+    return fullmessage
 
 def getVersionMsg():
     # version(4), services(8), timestamp(8), addr_me(26), addr_you(26), nonce(8)
@@ -70,7 +105,7 @@ def getVersionMsg():
     version = 60002
     services = 1
     timestamp = int(time.time())
-    addr_me = utils.netaddr(socket.inet_aton("127.0.0.1"), 8333)
+    addr_me = utils.netaddr(socket.inet_aton("37.47.175.101"), 8333)
     addr_you = utils.netaddr(socket.inet_aton("127.0.0.1"), 8333)
     nonce = random.getrandbits(64)
     sub_version_num = utils.varstr('')
